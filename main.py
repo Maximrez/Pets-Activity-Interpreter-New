@@ -40,7 +40,7 @@ model_keypoints = KeypointRCNN(backbone, num_classes=6, num_keypoints=20, rpn_an
                                box_roi_pool=roi_pooler, keypoint_roi_pool=keypoint_roi_pooler)
 model_keypoints = model_keypoints.to(device)
 model_keypoints.load_state_dict(
-    torch.load(os.path.join(data_dir, 'models', 'keypointrcnn_mobilenetv3large_1.pth'), map_location=device))
+    torch.load(os.path.join(data_dir, 'models', 'keypointrcnn_mobilenetv3large.pth'), map_location=device))
 model_keypoints.eval()
 
 bgr_colors = {'r': (0, 0, 255),
@@ -168,21 +168,21 @@ while True:
                     keypoints = (outputs['keypoints'][0].detach().numpy())[:, :].reshape(-1, 3)
                     keypoints_scores = outputs['keypoints_scores'][0].numpy()
 
-                    min_score = 1
+                    min_score = 1.
 
                     for l in lines:
                         if keypoints[l[0], 2] == 1 and keypoints_scores[l[0]] > min_score and \
                                 keypoints[l[1], 2] == 1 and keypoints_scores[l[1]] > min_score:
                             x1 = int(keypoints[l[0], 0] *
                                      (crop_x2 - crop_x1 + 2 * x_padding) / target_size[0]) - x_padding + crop_x1
-                        y1 = int(keypoints[l[0], 1] *
-                                 (crop_y2 - crop_y1 + 2 * y_padding) / target_size[1]) - y_padding + crop_y1
-                        x2 = int(keypoints[l[1], 0] *
-                                 (crop_x2 - crop_x1 + 2 * x_padding) / target_size[0]) - x_padding + crop_x1
-                        y2 = int(keypoints[l[1], 1] *
-                                 (crop_y2 - crop_y1 + 2 * y_padding) / target_size[1]) - y_padding + crop_y1
+                            y1 = int(keypoints[l[0], 1] *
+                                     (crop_y2 - crop_y1 + 2 * y_padding) / target_size[1]) - y_padding + crop_y1
+                            x2 = int(keypoints[l[1], 0] *
+                                     (crop_x2 - crop_x1 + 2 * x_padding) / target_size[0]) - x_padding + crop_x1
+                            y2 = int(keypoints[l[1], 1] *
+                                     (crop_y2 - crop_y1 + 2 * y_padding) / target_size[1]) - y_padding + crop_y1
 
-                        cv2.line(frame, (x1, y1), (x2, y2), l[2], 2)
+                            cv2.line(frame, (x1, y1), (x2, y2), l[2], 2)
 
                     for k in range(keypoints.shape[0]):
                         if keypoints[k, 2] == 1 and keypoints_scores[k] > min_score:
