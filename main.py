@@ -29,8 +29,11 @@ outputlayers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
 with open(os.path.join(yolo_dir, "coco.names"), "r") as f:
     classes = [line.strip() for line in f.readlines()]
 
-backbone = torchvision.models.mobilenet_v3_large(pretrained=True).features
-backbone.out_channels = 960
+# backbone = torchvision.models.mobilenet_v3_large(pretrained=True).features
+# backbone.out_channels = 960
+
+backbone = torchvision.models.mobilenet_v3_small(pretrained=True).features
+backbone.out_channels = 576
 
 anchor_generator = AnchorGenerator(sizes=((16, 32, 64, 128, 256),), aspect_ratios=((0.5, 1.0, 2.0),))
 
@@ -40,7 +43,7 @@ model_keypoints = KeypointRCNN(backbone, num_classes=6, num_keypoints=20, rpn_an
                                box_roi_pool=roi_pooler, keypoint_roi_pool=keypoint_roi_pooler)
 model_keypoints = model_keypoints.to(device)
 model_keypoints.load_state_dict(
-    torch.load(os.path.join(data_dir, 'models', 'keypointrcnn_mobilenetv3large.pth'), map_location=device))
+    torch.load(os.path.join(data_dir, 'models', 'keypointrcnn_mobilenetv3small_1.pth'), map_location=device))
 model_keypoints.eval()
 
 bgr_colors = {'r': (0, 0, 255),
