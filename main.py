@@ -15,10 +15,10 @@ torch.manual_seed(22)
 
 CONFIDENCE_EDGE = 0.6
 TARGET_PADDING = (30, 30)
-MIN_SCORE = -1.3
+MIN_SCORE = 1
 BOX_INCREASE = 0.05
 
-FILE_NAME = "cows.mp4"
+FILE_NAME = "kizoa.mp4"
 
 data_dir = 'D:/PycharmProjects/CV_project/data'
 yolo_dir = 'D:/PycharmProjects/CV_project/data/yolov3'
@@ -35,8 +35,8 @@ outputlayers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
 with open(os.path.join(yolo_dir, "coco.names"), "r") as f:
     classes = [line.strip() for line in f.readlines()]
 
-model_keypoints = keypointrcnn_mobilenet('mobilenet_v3_small',
-                                         os.path.join(data_dir, 'models', 'keypointrcnn_mobilenetv3small_1.pth'),
+model_keypoints = keypointrcnn_mobilenet('mobilenet_v3_large',
+                                         os.path.join(data_dir, 'models', 'keypointrcnn_mobilenetv3large.pth'),
                                          device)
 
 test_transforms = transforms.Compose([transforms.Resize(target_size), transforms.ToTensor()])
