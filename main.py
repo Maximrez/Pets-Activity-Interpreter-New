@@ -13,15 +13,15 @@ from models import *
 
 torch.manual_seed(22)
 
-CONFIDENCE_EDGE = 0.6
+CONFIDENCE_EDGE = 0.5
 TARGET_PADDING = (30, 30)
-MIN_SCORE = 1
+MIN_SCORE = 2
 SHOW_SCORES = False
 BOX_INCREASE = 0.05
 
-FILE_NAME = "dog.mp4"
+FILE_NAME = "corgi.mp4"
 
-project_dir = 'D:/PycharmProjects/CV_project'
+project_dir = 'D:\PycharmProjects\CV_project'
 data_dir = os.path.join(project_dir, 'data')
 yolo_dir = os.path.join(data_dir, 'yolov3')
 
@@ -60,6 +60,9 @@ frame_id = 0
 if SHOW_SCORES:
     MIN_SCORE = -9999
 
+# classification_preds = []
+# classification_targets = classification_corgi
+
 while True:
     _, frame = cap.read()
     if frame is None:
@@ -84,6 +87,7 @@ while True:
     class_ids = []
     confidences = []
     boxes = []
+    activity = None
     for out in outs:
         for detection in out:
             scores = detection[5:]
@@ -179,18 +183,26 @@ while True:
                         cat_preds = np.concatenate(([cat_preds[0]], cat_preds1 * cat_preds[1]))
 
                     max_idx, max_prob = max_confidence(cat_preds)
-                    cv2.putText(frame, activity_classes[max_idx] + " " + str(round(max_prob, 2)),
-                                (x + 5, y + 35), FONT_HERSHEY_PLAIN, 1, bgr_colors['w'], 2)
+                    activity = activity_classes[max_idx]
+                    cv2.putText(frame, activity + " " + str(round(max_prob, 2)), (x + 5, y + 35), FONT_HERSHEY_PLAIN, 1,
+                                bgr_colors['w'], 2)
+
+    # classification_preds.append(activity)
 
     elapsed_time = time.time() - starting_time
     fps = frame_id / elapsed_time
-    cv2.putText(frame, "FPS: " + str(round(fps, 2)), (5, 15), FONT_HERSHEY_PLAIN, 1, bgr_colors['w'], 2)
+    cv2.putText(frame, "FPS: " + str(round(fps, 2)) + " " + str(frame_id), (5, 15), FONT_HERSHEY_PLAIN, 1, bgr_colors[
+        'w'], 2)
 
     cv2.imshow(FILE_NAME, frame)
-    key = cv2.waitKey(1)
 
+    key = cv2.waitKey(1)
     if key == 27:
         break
 
 cap.release()
 cv2.destroyAllWindows()
+
+# print(classification_preds, len(classification_preds))
+# print(sum(list(int(classification_preds[i] == classification_targets[i]) for i in range(len(classification_preds)))),
+#       len(classification_preds))

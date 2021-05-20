@@ -33,3 +33,7 @@ activity_classes = ['stand', 'sit', 'lie', 'go', 'run']
 
 target_size = (256, 256)
 max_picture_shape = (1500, 800)
+
+classification_corgi = ["lie"] * 361  # 330/361
+classification_sit = ["sit"] * 429  # 398/429
+classification_dog = ["stand"] * 284 + ["go"] * 66 + ["stand"] * 42  # 320/392
