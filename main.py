@@ -19,12 +19,13 @@ MIN_SCORE = 1
 SHOW_SCORES = False
 BOX_INCREASE = 0.05
 
-FILE_NAME = "dog2.mp4"
+FILE_NAME = "dog.mp4"
 
-data_dir = 'D:/PycharmProjects/CV_project/data'
-yolo_dir = 'D:/PycharmProjects/CV_project/data/yolov3'
+project_dir = 'D:/PycharmProjects/CV_project'
+data_dir = os.path.join(project_dir, 'data')
+yolo_dir = os.path.join(data_dir, 'yolov3')
 
-shutil.unpack_archive('D:/PycharmProjects/CV_project/data/yolov3.zip', yolo_dir)
+shutil.unpack_archive(os.path.join(data_dir, 'yolov3.zip'), yolo_dir)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("Device:", device)
