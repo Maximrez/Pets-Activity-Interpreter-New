@@ -29,7 +29,7 @@ lines = [(0, 1, bgr_colors['c']),
          (15, 19, bgr_colors['g'])]
 
 animal_classes = ['cat', 'cow', 'dog', 'horse', 'sheep']
-activity_classes = ['nothing', 'stand', 'sit', 'lie', 'go', 'run', 'jump', 'interact', 'sleep', 'eat']
+activity_classes = ['stand', 'sit', 'lie', 'go', 'run']
 
 target_size = (256, 256)
 max_picture_shape = (1500, 800)

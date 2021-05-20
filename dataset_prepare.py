@@ -8,6 +8,7 @@ answers_dir = 'data/animalpose_keypoint/answers'
 images_dir = 'data/animalpose_keypoint/images'
 
 class_name = 'sheep'
+index = 777
 
 dictionary = {'id': [],
               'cat': [], 'cow': [], 'dog': [], 'horse': [], 'sheep': [],
@@ -32,17 +33,14 @@ dictionary = {'id': [],
               'R_F_paw_v': [], 'R_F_paw_x': [], 'R_F_paw_y': [],
               'L_B_paw_v': [], 'L_B_paw_x': [], 'L_B_paw_y': [],
               'R_B_paw_v': [], 'R_B_paw_x': [], 'R_B_paw_y': [],
-              'stand': [], 'sit': [], 'lie': [], 'go': [], 'run': [], 'jump': [], 'interact': [], 'sleep': [],
-              'eat': []}
-
-index = 777
+              'stand': [], 'sit': [], 'lie': [], 'go': [], 'run': []}
 
 
 def show_image(image):
     k = -1
     while k == -1:
         cv2.imshow(object_name[:-4], image)
-        k = cv2.waitKey(33)
+        k = cv2.waitKey(0)
 
     cv2.destroyAllWindows()
     return k
@@ -76,7 +74,7 @@ for object_name in tqdm(os.listdir(os.path.join(answers_dir, class_name))):
         image = cv2.imread(os.path.join(images_dir, class_name, object_name[:-4] + '.jpg'))
         k = show_image(image)
 
-    action_classes = ['stand', 'sit', 'lie', 'go', 'run', 'jump', 'interact', 'sleep', 'eat']
+    action_classes = ['stand', 'sit', 'lie', 'go', 'run']
     for class_id in range(len(action_classes)):
         if k - 49 == class_id:
             dictionary[action_classes[class_id]].append(1)

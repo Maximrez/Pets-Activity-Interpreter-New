@@ -16,9 +16,10 @@ torch.manual_seed(22)
 CONFIDENCE_EDGE = 0.6
 TARGET_PADDING = (30, 30)
 MIN_SCORE = 1
+SHOW_SCORES = False
 BOX_INCREASE = 0.05
 
-FILE_NAME = "kizoa.mp4"
+FILE_NAME = "dog2.mp4"
 
 data_dir = 'D:/PycharmProjects/CV_project/data'
 yolo_dir = 'D:/PycharmProjects/CV_project/data/yolov3'
@@ -42,7 +43,7 @@ model_keypoints = keypointrcnn_mobilenet('mobilenet_v3_large',
 test_transforms = transforms.Compose([transforms.Resize(target_size), transforms.ToTensor()])
 
 cat_classifier = CatBoostClassifier()
-cat_classifier.load_model(os.path.join(data_dir, 'models', 'cat_classifier'))
+cat_classifier.load_model(os.path.join(data_dir, 'models', 'cat_classifier_pure5'))
 
 test_data_dir = os.path.join(data_dir, 'test', 'videos')
 shutil.unpack_archive(os.path.join(data_dir, 'test_videos.zip'), os.path.join(data_dir, 'test'))
@@ -51,6 +52,9 @@ cap = cv2.VideoCapture(os.path.join(test_data_dir, FILE_NAME))
 
 starting_time = time.time()
 frame_id = 0
+
+if SHOW_SCORES:
+    MIN_SCORE = -9999
 
 while True:
     _, frame = cap.read()
@@ -148,7 +152,8 @@ while True:
 
                     list_features = list(bbox)
 
-                    for keypoint in keypoints:
+                    for k in range(keypoints.shape[0]):
+                        keypoint = keypoints[k]
                         list_features.append(keypoint[2])
                         list_features.append(keypoint[0])
                         list_features.append(keypoint[1])
@@ -158,7 +163,9 @@ while True:
                                              crop_x1, crop_x2, crop_y1, crop_y2, x_padding, y_padding, target_size)
 
                             cv2.circle(frame, (x0, y0), radius=2, color=(0, 0, 0), thickness=2)
-                            # cv2.putText(frame, str(round(keypoints_scores[k], 2)), (x0 + 5, y0 + 5), FONT_HERSHEY_PLAIN, 0.8, bgr_colors['w'], 1)
+                            if SHOW_SCORES:
+                                cv2.putText(frame, str(round(keypoints_scores[k], 2)), (x0 + 5, y0 + 5),
+                                            FONT_HERSHEY_PLAIN, 0.8, bgr_colors['w'], 1)
 
                     list_features.append(animal_classes.index(label))
 
