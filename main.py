@@ -43,7 +43,10 @@ model_keypoints = keypointrcnn_mobilenet('mobilenet_v3_large',
 test_transforms = transforms.Compose([transforms.Resize(target_size), transforms.ToTensor()])
 
 cat_classifier = CatBoostClassifier()
-cat_classifier.load_model(os.path.join(data_dir, 'models', 'cat_classifier_pure5'))
+cat_classifier.load_model(os.path.join(data_dir, 'models', 'cat_classifier_stand2'))
+
+cat_classifier1 = CatBoostClassifier()
+cat_classifier1.load_model(os.path.join(data_dir, 'models', 'cat_classifier_last4'))
 
 test_data_dir = os.path.join(data_dir, 'test', 'videos')
 shutil.unpack_archive(os.path.join(data_dir, 'test_videos.zip'), os.path.join(data_dir, 'test'))
@@ -170,6 +173,10 @@ while True:
                     list_features.append(animal_classes.index(label))
 
                     cat_preds = cat_classifier.predict(list_features, prediction_type='Probability')
+                    if len(cat_preds) == 2:
+                        cat_preds1 = cat_classifier1.predict(list_features, prediction_type='Probability')
+                        cat_preds = np.concatenate(([cat_preds[0]], cat_preds1 * cat_preds[1]))
+
                     max_idx, max_prob = max_confidence(cat_preds)
                     cv2.putText(frame, activity_classes[max_idx] + " " + str(round(max_prob, 2)),
                                 (x + 5, y + 35), FONT_HERSHEY_PLAIN, 1, bgr_colors['w'], 2)
