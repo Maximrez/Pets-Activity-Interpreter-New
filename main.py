@@ -19,7 +19,7 @@ MIN_SCORE = 2
 SHOW_SCORES = False
 BOX_INCREASE = 0.05
 
-FILE_NAME = "corgi.mp4"
+FILE_NAME = "dog.mp4"
 
 project_dir = 'D:\PycharmProjects\CV_project'
 data_dir = os.path.join(project_dir, 'data')
@@ -124,8 +124,7 @@ while True:
                 crop_y2 = min(y + h, height)
 
                 cv2.rectangle(frame, (crop_x1, crop_y1), (crop_x2, crop_y2), bgr_colors['g'], 2)
-                cv2.putText(frame, label + " " + str(round(confidence, 2)),
-                            (x + 5, y + 15), FONT_HERSHEY_PLAIN, 1, bgr_colors['w'], 2)
+                cv2.putText(frame, label + " " + str(round(confidence, 2)), (x + 5, y + 15), FONT_HERSHEY_PLAIN, 1, bgr_colors['w'], 2)
 
                 crop_img = frame[crop_y1:crop_y2, crop_x1:crop_x2, :]
                 im_pil = Image.fromarray(cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB))
@@ -191,8 +190,7 @@ while True:
 
     elapsed_time = time.time() - starting_time
     fps = frame_id / elapsed_time
-    cv2.putText(frame, "FPS: " + str(round(fps, 2)) + " " + str(frame_id), (5, 15), FONT_HERSHEY_PLAIN, 1, bgr_colors[
-        'w'], 2)
+    cv2.putText(frame, "FPS: " + str(round(fps, 2)), (5, 15), FONT_HERSHEY_PLAIN, 1, bgr_colors['w'], 2)
 
     cv2.imshow(FILE_NAME, frame)
 

@@ -32,7 +32,7 @@ animal_classes = ['cat', 'cow', 'dog', 'horse', 'sheep']
 activity_classes = ['stand', 'sit', 'lie', 'go', 'run']
 
 target_size = (256, 256)
-max_picture_shape = (1500, 800)
+max_picture_shape = (1500, 700)
 
 classification_corgi = ["lie"] * 361  # 329/361
 classification_sit = ["sit"] * 429  # 398/429
