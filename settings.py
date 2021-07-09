@@ -30,9 +30,19 @@ lines = [(0, 1, bgr_colors['c']),
 
 animal_classes = ['cat', 'cow', 'dog', 'horse', 'sheep']
 activity_classes = ['stand', 'sit', 'lie', 'go', 'run']
+activity_colors = {'stand': 'orange',
+                   'sit': 'yellow',
+                   'lie': 'green',
+                   'go': 'purple',
+                   'run': 'red'}
 
 target_size = (256, 256)
 max_picture_shape = (1500, 700)
+
+CONFIDENCE_EDGE = 0.5
+TARGET_PADDING = (30, 30)
+MIN_SCORE = 2
+BOX_INCREASE = 0.05
 
 classification_corgi = ["lie"] * 361  # 329/361
 classification_sit = ["sit"] * 429  # 398/429
