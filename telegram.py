@@ -46,7 +46,7 @@ def get_video(m):
     with open(graph_path, 'rb') as f:
         bot.send_photo(cid, f, "Статистика активности животного")
 
-    stats_config_path = os.path.join(project_dir, 'presentation', 'colors_config.png')
+    stats_config_path = os.path.join(telegram_dir, 'colors_config.png')
     with open(stats_config_path, 'rb') as f:
         bot.send_photo(cid, f, "Описание статистики")
 

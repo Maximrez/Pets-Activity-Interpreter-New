@@ -57,9 +57,7 @@ def process_video(file_path, project_dir, out_path, show_window=False, show_scor
     with open(os.path.join(yolo_dir, "coco.names"), "r") as f:
         classes = [line.strip() for line in f.readlines()]
 
-    model_keypoints = keypointrcnn_mobilenet('mobilenet_v3_large',
-                                             os.path.join(data_dir, 'models', 'keypointrcnn_mobilenetv3large.pth'),
-                                             device)
+    model_keypoints = keypointrcnn_mobilenet('mobilenet_v3_large', os.path.join(data_dir, 'models', 'keypointrcnn_mobilenetv3large.pth'), device)
 
     test_transforms = transforms.Compose([transforms.Resize(target_size), transforms.ToTensor()])
 
@@ -151,9 +149,8 @@ def process_video(file_path, project_dir, out_path, show_window=False, show_scor
 
                     cv2.rectangle(frame, (crop_x1, crop_y1), (crop_x2, crop_y2), bgr_colors['g'], 2)
 
-                    cv2.putText(frame, label, (x + 10, y + 20), FONT_HERSHEY_PLAIN, 1.5, bgr_colors['w'], 2)
-                    cv2.putText(frame, str(round(confidence, 2)), (x + 90, y + 20), FONT_HERSHEY_PLAIN, 1,
-                                bgr_colors['w'], 2)
+                    cv2.putText(frame, label, (crop_x1 + 10, crop_y1 + 20), FONT_HERSHEY_PLAIN, 1.5, bgr_colors['w'], 2)
+                    cv2.putText(frame, str(round(confidence, 2)), (crop_x1 + 90, crop_y1 + 20), FONT_HERSHEY_PLAIN, 1, bgr_colors['w'], 2)
 
                     crop_img = frame[crop_y1:crop_y2, crop_x1:crop_x2, :]
                     im_pil = Image.fromarray(cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB))
@@ -179,10 +176,8 @@ def process_video(file_path, project_dir, out_path, show_window=False, show_scor
 
                         for l in lines:
                             if keypoints[l[0], 2] == 1 and keypoints[l[1], 2] == 1:
-                                x1, y1 = rescale(keypoints[l[0], 0], keypoints[l[0], 1],
-                                                 crop_x1, crop_x2, crop_y1, crop_y2, x_padding, y_padding, target_size)
-                                x2, y2 = rescale(keypoints[l[1], 0], keypoints[l[1], 1],
-                                                 crop_x1, crop_x2, crop_y1, crop_y2, x_padding, y_padding, target_size)
+                                x1, y1 = rescale(keypoints[l[0], 0], keypoints[l[0], 1], crop_x1, crop_x2, crop_y1, crop_y2, x_padding, y_padding, target_size)
+                                x2, y2 = rescale(keypoints[l[1], 0], keypoints[l[1], 1], crop_x1, crop_x2, crop_y1, crop_y2, x_padding, y_padding, target_size)
 
                                 cv2.line(frame, (x1, y1), (x2, y2), l[2], 2)
 
@@ -217,9 +212,8 @@ def process_video(file_path, project_dir, out_path, show_window=False, show_scor
 
                         max_idx, max_prob = max_index(cat_preds)
                         activity = activity_classes[max_idx]
-                        cv2.putText(frame, activity, (x + 10, y + 45), FONT_HERSHEY_PLAIN, 1.5, bgr_colors['w'], 2)
-                        cv2.putText(frame, str(round(max_prob, 2)), (x + 90, y + 45), FONT_HERSHEY_PLAIN, 1,
-                                    bgr_colors['w'], 2)
+                        cv2.putText(frame, activity, (crop_x1 + 10, crop_y1 + 45), FONT_HERSHEY_PLAIN, 1.5, bgr_colors['w'], 2)
+                        cv2.putText(frame, str(round(max_prob, 2)), (crop_x1 + 90, crop_y1 + 45), FONT_HERSHEY_PLAIN, 1, bgr_colors['w'], 2)
 
                         activity_count[max_idx] += 1
         if (frame_id + 1) % cap_fps == 0:
@@ -290,3 +284,5 @@ def stats_graph(stats_m, stats_a, graph_path, show_graph=False):
     if show_graph:
         plt.show()
     plt.savefig(graph_path)
+
+    plt.gcf().clear()
