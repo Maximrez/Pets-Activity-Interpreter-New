@@ -52,7 +52,7 @@ def process_video(file_path, project_dir, out_path, show_window=False, show_scor
 
     net = cv2.dnn.readNet(os.path.join(yolo_dir, "yolov3.weights"), os.path.join(yolo_dir, "yolov3.cfg"))
     layer_names = net.getLayerNames()
-    outputlayers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+    outputlayers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
 
     with open(os.path.join(yolo_dir, "coco.names"), "r") as f:
         classes = [line.strip() for line in f.readlines()]
@@ -62,7 +62,7 @@ def process_video(file_path, project_dir, out_path, show_window=False, show_scor
     test_transforms = transforms.Compose([transforms.Resize(target_size), transforms.ToTensor()])
 
     cat_classifier = CatBoostClassifier()
-    cat_classifier.load_model(os.path.join(data_dir, 'models', 'cat_classifier_stand2'))
+    cat_classifier.load_model(os.path.join(data_dir, 'models', 'cat_classifier_augm6'))
 
     cat_classifier1 = CatBoostClassifier()
     cat_classifier1.load_model(os.path.join(data_dir, 'models', 'cat_classifier_last4'))

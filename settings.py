@@ -29,8 +29,9 @@ lines = [(0, 1, bgr_colors['c']),
          (15, 19, bgr_colors['g'])]
 
 animal_classes = ['cat', 'cow', 'dog', 'horse', 'sheep']
-activity_classes = ['stand', 'sit', 'lie', 'go', 'run']
-activity_colors = {'stand': 'orange',
+activity_classes = ['nothing', 'stand', 'sit', 'lie', 'go', 'run']
+activity_colors = {'nothing': "black",
+                   'stand': 'orange',
                    'sit': 'yellow',
                    'lie': 'green',
                    'go': 'purple',
