@@ -49,4 +49,4 @@ classification_corgi = ["lie"] * 361  # 329/361
 classification_sit = ["sit"] * 429  # 398/429
 classification_dog = ["stand"] * 284 + ["go"] * 66 + ["stand"] * 42  # 320/392
 
-NUMBER_PROCESSED_FRAMES = 3
+NUMBER_PROCESSED_FRAMES = 4
