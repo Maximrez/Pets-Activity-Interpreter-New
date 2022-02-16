@@ -49,20 +49,24 @@ def process_video(file_path, project_dir, out_path, show_window=False, show_scor
     shutil.unpack_archive(os.path.join(data_dir, 'yolov3.zip'), yolo_dir)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(f"device: {device}")
 
     net = cv2.dnn.readNet(os.path.join(yolo_dir, "yolov3.weights"), os.path.join(yolo_dir, "yolov3.cfg"))
+
     layer_names = net.getLayerNames()
     outputlayers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
 
     with open(os.path.join(yolo_dir, "coco.names"), "r") as f:
         classes = [line.strip() for line in f.readlines()]
 
-    model_keypoints = keypointrcnn_mobilenet('mobilenet_v3_large', os.path.join(data_dir, 'models', 'keypointrcnn_mobilenetv3large.pth'), device)
+    model_keypoints = keypointrcnn_mobilenet('mobilenet_v3_large',
+                                             os.path.join(data_dir, 'models', 'keypointrcnn_mobilenetv3large.pth'),
+                                             device)
 
     test_transforms = transforms.Compose([transforms.Resize(target_size), transforms.ToTensor()])
 
     cat_classifier = CatBoostClassifier()
-    cat_classifier.load_model(os.path.join(data_dir, 'models', 'cat_classifier_stand2'))
+    cat_classifier.load_model(os.path.join(data_dir, 'models', 'cat_classifier_augm6'))
 
     cat_classifier1 = CatBoostClassifier()
     cat_classifier1.load_model(os.path.join(data_dir, 'models', 'cat_classifier_last4'))
@@ -88,14 +92,14 @@ def process_video(file_path, project_dir, out_path, show_window=False, show_scor
     if show_scores:
         min_score = -9999
 
-    starting_time = time.time()
-    frame_id = 0
-
     prev_keys_position = [(-1, -1)] * 20
     sum_movement = 0
     activity_count = [0] * len(activity_classes)
     stats_m = []
     stats_a = []
+
+    starting_time = time.time()
+    frame_id = 0
 
     while True:
         _, frame = cap.read()
@@ -106,30 +110,32 @@ def process_video(file_path, project_dir, out_path, show_window=False, show_scor
         frame = cv2.resize(frame, (frame_width, frame_height))
 
         blob = cv2.dnn.blobFromImage(frame, 0.00392, (416, 416), bgr_colors['k'], True, crop=False)
-        net.setInput(blob)
-        outs = net.forward(outputlayers)
 
-        class_ids = []
-        confidences = []
-        boxes = []
-        for out in outs:
-            for detection in out:
-                scores = detection[5:]
-                class_id = np.argmax(scores)
-                confidence = scores[class_id]
-                if confidence > CONFIDENCE_EDGE:
-                    center_x = int(detection[0] * frame_width)
-                    center_y = int(detection[1] * frame_height)
-                    w = int(detection[2] * frame_width)
-                    h = int(detection[3] * frame_height)
-                    x = int(center_x - w / 2)
-                    y = int(center_y - h / 2)
+        if (frame_id - 1) % (cap_fps // NUMBER_PROCESSED_FRAMES) == 0:
+            net.setInput(blob)
+            outs = net.forward(outputlayers)
 
-                    boxes.append([x, y, w, h])
-                    confidences.append(float(confidence))
-                    class_ids.append(class_id)
+            class_ids = []
+            confidences = []
+            boxes = []
+            for out in outs:
+                for detection in out:
+                    scores = detection[5:]
+                    class_id = np.argmax(scores)
+                    confidence = scores[class_id]
+                    if confidence > CONFIDENCE_EDGE:
+                        center_x = int(detection[0] * frame_width)
+                        center_y = int(detection[1] * frame_height)
+                        w = int(detection[2] * frame_width)
+                        h = int(detection[3] * frame_height)
+                        x = int(center_x - w / 2)
+                        y = int(center_y - h / 2)
 
-        indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.4, 0.6)
+                        boxes.append([x, y, w, h])
+                        confidences.append(float(confidence))
+                        class_ids.append(class_id)
+
+            indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.4, 0.6)
 
         for i in range(len(boxes)):
             if i in indexes:
@@ -150,7 +156,8 @@ def process_video(file_path, project_dir, out_path, show_window=False, show_scor
                     cv2.rectangle(frame, (crop_x1, crop_y1), (crop_x2, crop_y2), bgr_colors['g'], 2)
 
                     cv2.putText(frame, label, (crop_x1 + 10, crop_y1 + 20), FONT_HERSHEY_PLAIN, 1.5, bgr_colors['w'], 2)
-                    cv2.putText(frame, str(round(confidence, 2)), (crop_x1 + 90, crop_y1 + 20), FONT_HERSHEY_PLAIN, 1, bgr_colors['w'], 2)
+                    cv2.putText(frame, str(round(confidence, 2)), (crop_x1 + 90, crop_y1 + 20), FONT_HERSHEY_PLAIN, 1,
+                                bgr_colors['w'], 2)
 
                     crop_img = frame[crop_y1:crop_y2, crop_x1:crop_x2, :]
                     im_pil = Image.fromarray(cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB))
@@ -158,64 +165,69 @@ def process_video(file_path, project_dir, out_path, show_window=False, show_scor
                     im_pil, x_padding, y_padding = image_padding(im_pil, TARGET_PADDING, target_size)
                     inputs = test_transforms(im_pil).unsqueeze(0).to(device)
 
-                    with torch.no_grad():
-                        outputs = model_keypoints(inputs)[0]
+                    if (frame_id - 1) % (cap_fps // NUMBER_PROCESSED_FRAMES) == 0:
+                        with torch.no_grad():
+                            outputs = model_keypoints(inputs)[0]
 
-                        for key in outputs.keys():
-                            outputs[key] = outputs[key].cpu()
+                            for key in outputs.keys():
+                                outputs[key] = outputs[key].cpu()
 
-                        keypoints = (outputs['keypoints'][0].detach().numpy())[:, :].reshape(-1, 3)
-                        keypoints_scores = outputs['keypoints_scores'][0].numpy()
-                        bbox = outputs['boxes'][0].numpy()
+                            keypoints = (outputs['keypoints'][0].detach().numpy())[:, :].reshape(-1, 3)
+                            keypoints_scores = outputs['keypoints_scores'][0].numpy()
+                            bbox = outputs['boxes'][0].numpy()
 
-                        for k in range(keypoints.shape[0]):
-                            if keypoints[k, 2] == 1 and keypoints_scores[k] > min_score:
-                                keypoints[k, 2] = 1
-                            else:
-                                keypoints[k] = [0., 0., 0.]
+                    for k in range(keypoints.shape[0]):
+                        if keypoints[k, 2] == 1 and keypoints_scores[k] > min_score:
+                            keypoints[k, 2] = 1
+                        else:
+                            keypoints[k] = [0., 0., 0.]
 
-                        for l in lines:
-                            if keypoints[l[0], 2] == 1 and keypoints[l[1], 2] == 1:
-                                x1, y1 = rescale(keypoints[l[0], 0], keypoints[l[0], 1], crop_x1, crop_x2, crop_y1, crop_y2, x_padding, y_padding, target_size)
-                                x2, y2 = rescale(keypoints[l[1], 0], keypoints[l[1], 1], crop_x1, crop_x2, crop_y1, crop_y2, x_padding, y_padding, target_size)
+                    for l in lines:
+                        if keypoints[l[0], 2] == 1 and keypoints[l[1], 2] == 1:
+                            x1, y1 = rescale(keypoints[l[0], 0], keypoints[l[0], 1], crop_x1, crop_x2, crop_y1, crop_y2,
+                                             x_padding, y_padding, target_size)
+                            x2, y2 = rescale(keypoints[l[1], 0], keypoints[l[1], 1], crop_x1, crop_x2, crop_y1, crop_y2,
+                                             x_padding, y_padding, target_size)
 
-                                cv2.line(frame, (x1, y1), (x2, y2), l[2], 2)
+                            cv2.line(frame, (x1, y1), (x2, y2), l[2], 2)
 
-                        list_features = list(bbox)
+                    list_features = list(bbox)
 
-                        for k in range(keypoints.shape[0]):
-                            keypoint = keypoints[k]
-                            list_features.append(keypoint[2])
-                            list_features.append(keypoint[0])
-                            list_features.append(keypoint[1])
+                    for k in range(keypoints.shape[0]):
+                        keypoint = keypoints[k]
+                        list_features.append(keypoint[2])
+                        list_features.append(keypoint[0])
+                        list_features.append(keypoint[1])
 
-                            if keypoint[2] == 1:
-                                x0, y0 = rescale(keypoint[0], keypoint[1],
-                                                 crop_x1, crop_x2, crop_y1, crop_y2, x_padding, y_padding, target_size)
+                        if keypoint[2] == 1:
+                            x0, y0 = rescale(keypoint[0], keypoint[1],
+                                             crop_x1, crop_x2, crop_y1, crop_y2, x_padding, y_padding, target_size)
 
-                                cv2.circle(frame, (x0, y0), radius=2, color=(0, 0, 0), thickness=2)
-                                if show_scores:
-                                    cv2.putText(frame, str(round(keypoints_scores[k], 2)), (x0 + 5, y0 + 5),
-                                                FONT_HERSHEY_PLAIN, 0.8, bgr_colors['w'], 1)
+                            cv2.circle(frame, (x0, y0), radius=2, color=(0, 0, 0), thickness=2)
+                            if show_scores:
+                                cv2.putText(frame, str(round(keypoints_scores[k], 2)), (x0 + 5, y0 + 5),
+                                            FONT_HERSHEY_PLAIN, 0.8, bgr_colors['w'], 1)
 
-                                if prev_keys_position[k] != (-1, -1):
-                                    sum_movement += ((prev_keys_position[k][0] - x0) ** 2 + (
-                                            prev_keys_position[k][1] - y0) ** 2) ** 0.5
-                                prev_keys_position[k] = (x0, y0)
+                            if prev_keys_position[k] != (-1, -1):
+                                sum_movement += ((prev_keys_position[k][0] - x0) ** 2 + (
+                                        prev_keys_position[k][1] - y0) ** 2) ** 0.5
+                            prev_keys_position[k] = (x0, y0)
 
-                        list_features.append(animal_classes.index(label))
+                    list_features.append(animal_classes.index(label))
 
-                        cat_preds = cat_classifier.predict(list_features, prediction_type='Probability')
-                        if len(cat_preds) == 2:
-                            cat_preds1 = cat_classifier1.predict(list_features, prediction_type='Probability')
-                            cat_preds = np.concatenate(([cat_preds[0]], cat_preds1 * cat_preds[1]))
+                    cat_preds = cat_classifier.predict(list_features, prediction_type='Probability')
+                    if len(cat_preds) == 2:
+                        cat_preds1 = cat_classifier1.predict(list_features, prediction_type='Probability')
+                        cat_preds = np.concatenate(([cat_preds[0]], cat_preds1 * cat_preds[1]))
 
-                        max_idx, max_prob = max_index(cat_preds)
-                        activity = activity_classes[max_idx]
-                        cv2.putText(frame, activity, (crop_x1 + 10, crop_y1 + 45), FONT_HERSHEY_PLAIN, 1.5, bgr_colors['w'], 2)
-                        cv2.putText(frame, str(round(max_prob, 2)), (crop_x1 + 90, crop_y1 + 45), FONT_HERSHEY_PLAIN, 1, bgr_colors['w'], 2)
+                    max_idx, max_prob = max_index(cat_preds)
+                    activity = activity_classes[max_idx]
+                    cv2.putText(frame, activity, (crop_x1 + 10, crop_y1 + 45), FONT_HERSHEY_PLAIN, 1.5, bgr_colors['w'],
+                                2)
+                    cv2.putText(frame, str(round(max_prob, 2)), (crop_x1 + 90, crop_y1 + 45), FONT_HERSHEY_PLAIN, 1,
+                                bgr_colors['w'], 2)
 
-                        activity_count[max_idx] += 1
+                    activity_count[max_idx] += 1
         if (frame_id + 1) % cap_fps == 0:
             stats_m.append(sum_movement / cap_fps)
             max_activity_idx, _ = max_index(activity_count)
@@ -236,6 +248,11 @@ def process_video(file_path, project_dir, out_path, show_window=False, show_scor
                 break
 
         cap_out.write(frame)
+
+    elapsed_time = time.time() - starting_time
+    fps = frame_id / elapsed_time
+    spf = elapsed_time / frame_id
+    print(f"seconds per frame: {spf}, frames per second: {fps}")
 
     cap.release()
     cap_out.release()
