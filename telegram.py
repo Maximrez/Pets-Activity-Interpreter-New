@@ -34,7 +34,6 @@ def get_video(m):
 
     # new_out_path = os.path.join(telegram_dir, "converted_" + str(m.video.file_id) + ".mp4")
     # ff_bin_path = r'C:\Users\Максим\ffmpeg-2021-07-06-git-758e2da289-full_build\bin'
-
     # convert_avi_to_mp4(out_path, new_out_path, ff_bin_path, width, height, fps)
 
     with open(out_path, 'rb') as f:
