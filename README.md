@@ -1,5 +1,5 @@
 ## Pets Activity Interpreter New
-**KeypointRCNN** with **MobileNetV3** and **YoloV3** based video and photo pets activity interpreter.
+**KeypointRCNN** with **MobileNetV3** and **YoloV5** based video and photo pets activity interpreter.
 
 Dataset source: https://sites.google.com/view/animal-pose
 
